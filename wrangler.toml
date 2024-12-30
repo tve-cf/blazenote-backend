@@ -8,16 +8,18 @@ database_name = "blazenote"
 database_id = "03f478d7-587c-4261-a287-1b677a35cfb0"
 migrations_dir = "./migrations"
 
-# [vars]
+[vars]
+# R2_BUCKET = "blazenote"
 # MY_VAR = "my-variable"
 
 # [[kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
 # id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
-# [[r2_buckets]]
-# binding = "MY_BUCKET"
-# bucket_name = "my-bucket"
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "blazenote"
+preview_bucket_name = "dev-blazenote"
 
 # [[d1_databases]]
 # binding = "DB"
