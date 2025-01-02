@@ -14,7 +14,7 @@ const files = new Hono<ContextExtended>();
 // Route to list all files in the bucket
 files.get("/list", async (ctx) => {
   const bucket = ctx.env.R2_BUCKET;
-  
+
   try {
     const objects = await bucket.list();
     //console.log(objects); // Log the raw response
@@ -62,6 +62,7 @@ files.post("/upload", async (ctx) => {
   }
 });
 
+// Route to generate pre-signed url
 files.post("/pre-signed-url", async (ctx) => {
   const r2 = new S3Client({
     region: "auto",
@@ -72,7 +73,7 @@ files.post("/pre-signed-url", async (ctx) => {
     },
   });
 
-  const bucket = "ctx.env.R2_BUCKET";
+  const bucket = ctx.env.R2_BUCKET_NAME;
 
   // How the file will be identified in the bucket
   const key = crypto.randomUUID();
@@ -83,7 +84,14 @@ files.post("/pre-signed-url", async (ctx) => {
     new PutObjectCommand({ Bucket: bucket, Key: key })
   );
 
-  return ctx.json({ key, url });
+  // Set CORS headers
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  return ctx.json({ key, url }, { headers });
 });
 
 // Route to delete a specific file by ID
