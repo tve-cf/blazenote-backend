@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { ContextExtended } from "../types";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const files = new Hono<ContextExtended>();
@@ -64,27 +68,13 @@ files.post("/upload", async (ctx) => {
 
 // Route to generate pre-signed url
 files.post("/pre-signed-url", async (ctx) => {
-  const r2 = new S3Client({
-    region: "auto",
-    endpoint: ctx.env.R2_ENDPOINT,
-    credentials: {
-      accessKeyId: ctx.env.R2_ACCESS_KEY,
-      secretAccessKey: ctx.env.R2_SECRET_KEY,
-    },
-  });
-
-  const bucket = ctx.env.R2_BUCKET_NAME;
-
-  // How the file will be identified in the bucket
+  const { r2, bucket } = createR2Client(ctx);
   const key = crypto.randomUUID();
-
-  // Generate a pre-signed URL for uploading the file
   const url = await getSignedUrl(
     r2,
     new PutObjectCommand({ Bucket: bucket, Key: key })
   );
 
-  // Set CORS headers
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST",
@@ -123,6 +113,7 @@ files.delete("/:id", async (ctx) => {
 });
 
 // Route to get a specific file by ID
+/*
 files.get("/:id", async (ctx) => {
   const filename = ctx.req.param("id"); // Get the file key (ID) from the URL parameter
 
@@ -156,5 +147,57 @@ files.get("/:id", async (ctx) => {
     });
   }
 });
+*/
+
+// Route to get a specific file by key
+files.get("/:key", async (ctx) => {
+  const { r2, bucket } = createR2Client(ctx);
+  const fileKey = ctx.req.param("key");
+
+  if (!fileKey) {
+    return ctx.json({
+      success: false,
+      message: "No file key provided",
+    });
+  }
+
+  try {
+    const url = await getSignedUrl(
+      r2,
+      new GetObjectCommand({ Bucket: bucket, Key: fileKey }),
+      { expiresIn: 3600 }
+    );
+
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+
+    return ctx.json({ success: true, key: fileKey, url }, { headers });
+  } catch (error) {
+    return ctx.json({
+      success: false,
+      message: `Error generating pre-signed URL for file ${fileKey}`,
+      error: error.message,
+    });
+  }
+});
+
+// Helper to init the s3 client
+function createR2Client(ctx: any) {
+  const r2 = new S3Client({
+    region: "auto",
+    endpoint: ctx.env.R2_ENDPOINT,
+    credentials: {
+      accessKeyId: ctx.env.R2_ACCESS_KEY,
+      secretAccessKey: ctx.env.R2_SECRET_KEY,
+    },
+  });
+
+  const bucket = ctx.env.R2_BUCKET_NAME;
+
+  return { r2, bucket };
+}
 
 export default files;
