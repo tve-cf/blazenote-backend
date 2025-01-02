@@ -14,9 +14,7 @@ const files = new Hono<ContextExtended>();
 // Route to list all files in the bucket
 files.get("/list", async (ctx) => {
   const bucket = ctx.env.R2_BUCKET;
-  //const secretKey = ctx.env.R2_SECRET_KEY;
-  //console.log("R2_SECRET_KEY:", secretKey);
-
+  
   try {
     const objects = await bucket.list();
     //console.log(objects); // Log the raw response
@@ -74,10 +72,7 @@ files.post("/pre-signed-url", async (ctx) => {
     },
   });
 
-  //console.log(ctx.env.R2_SECRET_KEY);
-
   const bucket = "ctx.env.R2_BUCKET";
-  //console.log(r2);
 
   // How the file will be identified in the bucket
   const key = crypto.randomUUID();
