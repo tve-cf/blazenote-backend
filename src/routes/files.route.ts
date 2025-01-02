@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 import { ContextExtended } from "../types";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const files = new Hono<ContextExtended>();
 
@@ -12,7 +14,7 @@ const files = new Hono<ContextExtended>();
 // Route to list all files in the bucket
 files.get("/list", async (ctx) => {
   const bucket = ctx.env.R2_BUCKET;
-
+  
   try {
     const objects = await bucket.list();
     //console.log(objects); // Log the raw response
@@ -58,6 +60,30 @@ files.post("/upload", async (ctx) => {
       error: error.message,
     });
   }
+});
+
+files.post("/pre-signed-url", async (ctx) => {
+  const r2 = new S3Client({
+    region: "auto",
+    endpoint: ctx.env.R2_ENDPOINT,
+    credentials: {
+      accessKeyId: ctx.env.R2_ACCESS_KEY,
+      secretAccessKey: ctx.env.R2_SECRET_KEY,
+    },
+  });
+
+  const bucket = "ctx.env.R2_BUCKET";
+
+  // How the file will be identified in the bucket
+  const key = crypto.randomUUID();
+
+  // Generate a pre-signed URL for uploading the file
+  const url = await getSignedUrl(
+    r2,
+    new PutObjectCommand({ Bucket: bucket, Key: key })
+  );
+
+  return ctx.json({ key, url });
 });
 
 // Route to delete a specific file by ID
