@@ -15,19 +15,35 @@ const files = new Hono<ContextExtended>();
 });
 */
 
-// Route to list all files in the bucket
-files.get("/list", async (ctx) => {
-  const bucket = ctx.env.R2_BUCKET;
+// Route to get a list of object keys (files) for a note id
+files.get("/list/:note_id", async (ctx) => {
+  const db = ctx.env.DB;
+  const noteId = ctx.req.param("note_id");
 
   try {
-    const objects = await bucket.list();
-    //console.log(objects); // Log the raw response
-    const keys = objects.objects.map((object) => object.key);
-    return ctx.json({ success: true, keys });
+    const query = "SELECT id, name FROM file WHERE note_id = ?";
+    console.log(`Executing query: ${query} with note_id = ${noteId}`); // Log the query and parameter
+
+    const results = await db.prepare(query).bind(noteId).all();
+
+    if (!results.success || results.results.length === 0) {
+      return ctx.json({
+        success: true,
+        names: [],
+        message: "No files found for the specified note_id",
+      });
+    }
+
+    const names = results.results.map((row) => ({
+      id: row.id,
+      name: row.name,
+    }));
+
+    return ctx.json({ success: true, names });
   } catch (error) {
     return ctx.json({
       success: false,
-      message: "Error listing objects",
+      message: "Error retrieving files",
       error: error.message,
     });
   }
