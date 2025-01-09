@@ -68,20 +68,42 @@ files.post("/upload", async (ctx) => {
 
 // Route to generate pre-signed url
 files.post("/pre-signed-url", async (ctx) => {
-  const { r2, bucket } = createR2Client(ctx);
-  const key = crypto.randomUUID();
-  const url = await getSignedUrl(
-    r2,
-    new PutObjectCommand({ Bucket: bucket, Key: key })
-  );
+  try {
+    const { r2, bucket } = createR2Client(ctx);
+    const { fileName } = await ctx.req.json(); // Extract the file name from the request body
 
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
+    if (!fileName) {
+      throw new Error("File name is required.");
+    }
 
-  return ctx.json({ key, url }, { headers });
+    // Extract the file extension
+    const fileExtension = fileName.split(".").pop();
+    const baseName = fileName.replace(`.${fileExtension}`, "");
+
+    // Generate the key with timestamp
+    const timestamp = Math.floor(Date.now() / 1000); // Current Unix timestamp
+    const key = `${timestamp}-${baseName}.${fileExtension}`;
+
+    // Generate the signed URL
+    const url = await getSignedUrl(
+      r2,
+      new PutObjectCommand({ Bucket: bucket, Key: key })
+    );
+
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+
+    return ctx.json({ key, url }, { headers });
+  } catch (error) {
+    console.error("Error generating pre-signed URL:", error);
+    return ctx.json(
+      { message: "Failed to generate pre-signed URL", error: error.message },
+      { status: 500 }
+    );
+  }
 });
 
 // Route to delete a specific file by ID
@@ -180,6 +202,40 @@ files.get("/:key", async (ctx) => {
       success: false,
       message: `Error generating pre-signed URL for file ${fileKey}`,
       error: error.message,
+    });
+  }
+});
+
+files.post("/save", async (ctx) => {
+  try {
+    const { noteId, objectKey } = await ctx.req.json();
+    // Log the extracted values
+    console.log("Received noteId:", noteId);
+    console.log("Received file key:", objectKey);
+    const id = crypto.randomUUID();
+    const db = ctx.env.DB;
+
+    // Get the current Unix timestamp
+    const createdAt = Math.floor(Date.now() / 1000);
+
+    // Insert the file metadata into the 'file' table
+    const response = await db
+      .prepare(
+        `INSERT INTO file (id, note_id, name, created_at, updated_at) 
+          VALUES (?, ?, ?, ?, ?)`
+      )
+      .bind(id, noteId, objectKey, createdAt, createdAt) // Insert note ID, file key, and timestamps
+      .run();
+
+    if (response && response.affectedRows > 0) {
+      return Response.json({ message: "File metadata saved successfully" });
+    } else {
+      return Response.json({ message: "Failed to save file metadata" });
+    }
+  } catch (e) {
+    console.error(`Failed to save file metadata. Reason: ${e}`);
+    return Response.json({
+      message: `Failed to save file metadata. Reason: ${e}`,
     });
   }
 });
