@@ -78,12 +78,6 @@ files.post("/pre-signed-url", async (ctx) => {
       new PutObjectCommand({ Bucket: bucket, Key: key })
     );
 
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST",
-      "Access-Control-Allow-Headers": "Content-Type",
-    };
-
     return ctx.json({ key, url }, { headers });
   } catch (error) {
     console.error("Error generating pre-signed URL:", error);
