@@ -1,23 +1,40 @@
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import notes from './routes/notes.route'
-import files from './routes/files.route'
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import notes from "./routes/notes.route";
+import files from "./routes/files.route";
 
-const app = new Hono()
+const app = new Hono();
+
+// Define allowed origins
+const allowedOrigins = new Set([
+  "http://localhost:5173",
+  "https://blazenote.suppadev.com",
+]);
+
 // https://hono.dev/docs/middleware/builtin/cors
 app.use(
+  "*",
   cors({
-    origin: ['http://localhost:5173'], // TODO: To add prod origin
-    allowMethods: ['POST', 'GET', 'DELETE', 'PUT'],
-    maxAge: 600,
+    origin: (origin) => {
+      if (allowedOrigins.has(origin)) {
+        return origin; // Allow this origin
+      }
+      return null; // Disallow this origin
+    },
+    credentials: true,
+    allowMethods: ["POST", "GET", "DELETE", "PUT"],
+    allowHeaders: [
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, Cache-Control",
+    ],
   })
-)
+);
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+app.get("/", (c) => {
+  return c.text("Hello Hono!");
+});
 
-app.route('/notes', notes);
-app.route('/files', files);
+app.route("/notes", notes);
+app.route("/files", files);
 
-export default app
+export default app;
