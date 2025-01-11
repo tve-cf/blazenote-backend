@@ -63,13 +63,8 @@ files.post("/pre-signed-url", async (ctx) => {
   try {
     const { r2, bucket } = createR2Client(ctx);
     const { fileName } = await ctx.req.json();
-    if (!fileName) {
-      throw new Error("File name is required.");
-    }
-
     const fileExtension = fileName.split(".").pop();
     const baseName = fileName.replace(`.${fileExtension}`, "");
-
     const timestamp = Math.floor(Date.now() / 1000);
     const key = `${timestamp}-${baseName}.${fileExtension}`;
 
@@ -77,6 +72,12 @@ files.post("/pre-signed-url", async (ctx) => {
       r2,
       new PutObjectCommand({ Bucket: bucket, Key: key })
     );
+
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
 
     return ctx.json({ key, url }, { headers });
   } catch (error) {
