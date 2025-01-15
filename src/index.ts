@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import notes from "./routes/notes.route";
 import files from "./routes/files.route";
+import filesWorkers from "./routes/files-workers.route";
 
 const app = new Hono();
 
@@ -36,5 +37,6 @@ app.get("/", (c) => {
 
 app.route("/notes", notes);
 app.route("/files", files);
+app.route("/files-workers", filesWorkers);
 
 export default app;

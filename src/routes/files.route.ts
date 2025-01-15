@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const files = new Hono<ContextExtended>();
+const files = new Hono();
 
 // Helper to init the s3 client
 function createR2Client(ctx: any) {
