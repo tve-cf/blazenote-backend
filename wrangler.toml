@@ -11,10 +11,6 @@ migrations_dir = "./migrations"
 
 [vars]
 # MY_VAR = "my-variable"
-R2_ENDPOINT = "https://e206e81b43614ccd76aed224ad5e1cbc.r2.cloudflarestorage.com/blazenote"
-R2_ACCESS_KEY = "25b2a0662544ef5a8ea952c6fe8a8726"
-R2_SECRET_KEY = "deecca000f189836621576cc9738ca037cc3cc6e334793eadf1ce610b2fde3f2"
-R2_BUCKET_NAME = "blazenote"
 
 # [[kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
