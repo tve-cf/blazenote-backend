@@ -1,5 +1,5 @@
-import { Context, Hono } from "hono";
-import { Bindings, ContextExtended } from "../types";
+import { Hono } from "hono";
+import { ContextExtended } from "../types";
 import {
   S3Client,
   PutObjectCommand,
@@ -11,7 +11,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 const files = new Hono();
 
 // Helper to init the s3 client
-function createR2Client(ctx: Context<{ Bindings: Bindings }>) {
+function createR2Client(ctx: ContextExtended) {
   const r2 = new S3Client({
     region: "auto",
     endpoint: ctx.env.R2_ENDPOINT,
@@ -27,7 +27,7 @@ function createR2Client(ctx: Context<{ Bindings: Bindings }>) {
 }
 
 // Route to get a list of files attached to a note from db
-files.get("/list/:noteId", async (ctx: Context<{ Bindings: Bindings }>) => {
+files.get("/list/:noteId", async (ctx: ContextExtended) => {
   const db = ctx.env.DB;
   const noteId = ctx.req.param("noteId");
 
@@ -59,7 +59,7 @@ files.get("/list/:noteId", async (ctx: Context<{ Bindings: Bindings }>) => {
 });
 
 // Route to generate pre-signed url for upload
-files.post("/pre-signed-url", async (ctx: Context<{ Bindings: Bindings }>) => {
+files.post("/pre-signed-url", async (ctx: ContextExtended) => {
   try {
     const { r2, bucket } = createR2Client(ctx);
     const { fileName } = await ctx.req.json();
@@ -92,7 +92,7 @@ files.post("/pre-signed-url", async (ctx: Context<{ Bindings: Bindings }>) => {
 // Route to generate pre-signed url for download
 files.get(
   "/pre-signed-url/:fileName",
-  async (ctx: Context<{ Bindings: Bindings }>) => {
+  async (ctx: ContextExtended) => {
     try {
       const { r2, bucket } = createR2Client(ctx);
       const fileName = ctx.req.param("fileName");
@@ -128,7 +128,7 @@ files.get(
 );
 
 // Route to save files metadata to file table
-files.post("/save", async (ctx: Context<{ Bindings: Bindings }>) => {
+files.post("/save", async (ctx: ContextExtended) => {
   try {
     const { noteId, objectKey } = await ctx.req.json();
     console.log("Received noteId:", noteId);
@@ -164,7 +164,7 @@ files.post("/save", async (ctx: Context<{ Bindings: Bindings }>) => {
 });
 
 // Delete attachment based on noteId
-files.delete("/:noteId", async (ctx: Context<{ Bindings: Bindings }>) => {
+files.delete("/:noteId", async (ctx: ContextExtended) => {
   const db = ctx.env.DB;
   const noteId = ctx.req.param("noteId");
 
