@@ -1,5 +1,5 @@
-import { Hono } from "hono";
-import { ContextExtended } from "../types";
+import { Context, Hono } from "hono";
+import { Bindings, ContextExtended } from "../types";
 import {
   S3Client,
   PutObjectCommand,
@@ -11,7 +11,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 const files = new Hono();
 
 // Helper to init the s3 client
-function createR2Client(ctx: any) {
+function createR2Client(ctx: Context<{ Bindings: Bindings }>) {
   const r2 = new S3Client({
     region: "auto",
     endpoint: ctx.env.R2_ENDPOINT,
@@ -27,7 +27,7 @@ function createR2Client(ctx: any) {
 }
 
 // Route to get a list of files attached to a note from db
-files.get("/list/:noteId", async (ctx) => {
+files.get("/list/:noteId", async (ctx: Context<{ Bindings: Bindings }>) => {
   const db = ctx.env.DB;
   const noteId = ctx.req.param("noteId");
 
@@ -50,16 +50,16 @@ files.get("/list/:noteId", async (ctx) => {
 
     return ctx.json({ success: true, names });
   } catch (error) {
+    console.error("Error retrieving files:", error);
     return ctx.json({
       success: false,
       message: "Error retrieving files",
-      error: error.message,
     });
   }
 });
 
 // Route to generate pre-signed url for upload
-files.post("/pre-signed-url", async (ctx) => {
+files.post("/pre-signed-url", async (ctx: Context<{ Bindings: Bindings }>) => {
   try {
     const { r2, bucket } = createR2Client(ctx);
     const { fileName } = await ctx.req.json();
@@ -82,50 +82,53 @@ files.post("/pre-signed-url", async (ctx) => {
     return ctx.json({ key, url }, { headers });
   } catch (error) {
     console.error("Error generating pre-signed URL:", error);
-    return ctx.json(
-      { message: "Failed to generate pre-signed URL", error: error.message },
-      { status: 500 }
-    );
+    return ctx.json({
+      success: false,
+      message: `Failed to generate pre-signed URL`,
+    });
   }
 });
 
 // Route to generate pre-signed url for download
-files.get("/pre-signed-url/:fileName", async (ctx) => {
-  try {
-    const { r2, bucket } = createR2Client(ctx);
-    const fileName = ctx.req.param("fileName");
+files.get(
+  "/pre-signed-url/:fileName",
+  async (ctx: Context<{ Bindings: Bindings }>) => {
+    try {
+      const { r2, bucket } = createR2Client(ctx);
+      const fileName = ctx.req.param("fileName");
 
-    if (!fileName) {
-      throw new Error("File name is required.");
+      if (!fileName) {
+        throw new Error("File name is required.");
+      }
+
+      const url = await getSignedUrl(
+        r2,
+        new GetObjectCommand({
+          Bucket: bucket,
+          Key: fileName,
+        }),
+        { expiresIn: 900 }
+      );
+
+      const headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Content-Type",
+      };
+
+      return ctx.json({ url }, { headers });
+    } catch (error) {
+      console.error("Error generating pre-signed URL:", error);
+      return ctx.json({
+        success: false,
+        message: `Failed to generate pre-signed URL`,
+      });
     }
-
-    const url = await getSignedUrl(
-      r2,
-      new GetObjectCommand({
-        Bucket: bucket,
-        Key: fileName,
-      }),
-      { expiresIn: 900 }
-    );
-
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET",
-      "Access-Control-Allow-Headers": "Content-Type",
-    };
-
-    return ctx.json({ url }, { headers });
-  } catch (error) {
-    console.error("Error generating pre-signed URL:", error);
-    return ctx.json(
-      { message: "Failed to generate pre-signed URL", error: error.message },
-      { status: 500 }
-    );
   }
-});
+);
 
 // Route to save files metadata to file table
-files.post("/save", async (ctx) => {
+files.post("/save", async (ctx: Context<{ Bindings: Bindings }>) => {
   try {
     const { noteId, objectKey } = await ctx.req.json();
     console.log("Received noteId:", noteId);
@@ -146,21 +149,22 @@ files.post("/save", async (ctx) => {
       .bind(id, noteId, objectKey, createdAt, createdAt)
       .run();
 
-    if (response && response.affectedRows > 0) {
+    if (response && response.success) {
       return ctx.json({ message: "File metadata saved successfully" });
     } else {
       return ctx.json({ message: "Failed to save file metadata" });
     }
   } catch (error) {
-    console.error(`Failed to save file metadata. Reason: ${error.message}`);
+    console.error(`Failed to save file metadata. Reason: ${error}`);
     return ctx.json({
-      message: `Failed to save file metadata. Reason: ${error.message}`,
+      success: false,
+      message: `Failed to save file metadata`,
     });
   }
 });
 
 // Delete attachment based on noteId
-files.delete("/:noteId", async (ctx) => {
+files.delete("/:noteId", async (ctx: Context<{ Bindings: Bindings }>) => {
   const db = ctx.env.DB;
   const noteId = ctx.req.param("noteId");
 
@@ -176,7 +180,7 @@ files.delete("/:noteId", async (ctx) => {
       });
     }
 
-    const names = results.results.map((row) => row.name);
+    const names = results.results.map((row) => row.name as string);
 
     // Parallel deletion of files
     const deletePromises = names.map((name) =>
@@ -192,11 +196,10 @@ files.delete("/:noteId", async (ctx) => {
       message: "All files deleted.",
     });
   } catch (error) {
-    // Handle database query or other errors
-    console.error(`Failed to process files for ${noteId}: ${error.message}`);
+    console.error(`Failed to process files for ${noteId}: ${error}`);
     return ctx.json({
       success: false,
-      message: `Failed to process files for deletion. Reason: ${error.message}`,
+      message: `Failed to process files for deletion`,
     });
   }
 });
