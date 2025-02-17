@@ -1,8 +1,9 @@
 import { Hono } from "hono";
+import { ContextExtended } from "../types";
 
 const notes = new Hono();
 
-notes.get('/', async (ctx) => {
+notes.get('/', async (ctx: ContextExtended) => {
     const db = ctx.env.DB;
     const notes = await db.prepare("SELECT * FROM note LIMIT 50")
         .run();
@@ -10,7 +11,7 @@ notes.get('/', async (ctx) => {
     return Response.json(notes.results)
 });
 
-notes.get('/:id', async (ctx) => {
+notes.get('/:id', async (ctx: ContextExtended) => {
     const id = ctx.req.path.split('/').slice(-1).join()
     const db = ctx.env.DB;
     const note = await db.prepare("SELECT * FROM note  WHERE id = ?1")
@@ -20,7 +21,7 @@ notes.get('/:id', async (ctx) => {
     return Response.json(note)
 });
 
-notes.post('/', async (ctx) => {
+notes.post('/', async (ctx: ContextExtended) => {
     try {
         const { id, title, description } = await ctx.req.json()
         const db = ctx.env.DB;
@@ -35,7 +36,7 @@ notes.post('/', async (ctx) => {
     }
 });
 
-notes.put('/:id', async (ctx) => {
+notes.put('/:id', async (ctx: ContextExtended) => {
     try {
         const id = ctx.req.path.split('/').slice(-1).join()
         const { title, description } = await ctx.req.json()
@@ -54,7 +55,7 @@ notes.put('/:id', async (ctx) => {
     }
 });
 
-notes.delete('/:id', async (ctx) => {
+notes.delete('/:id', async (ctx: ContextExtended) => {
     try {
         const id = ctx.req.path.split('/').slice(-1).join()
         const db = ctx.env.DB;

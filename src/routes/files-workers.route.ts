@@ -3,14 +3,8 @@ import { ContextExtended } from "../types";
 
 const filesWorkers = new Hono();
 
-// Route to get all files (empty list for now)
-/*filesWorkers.get("/", (ctx) => {
-  return ctx.json([]);
-});
-*/
-
 // Route to list all files in the bucket
-filesWorkers.get("/list", async (ctx) => {
+filesWorkers.get("/list", async (ctx: ContextExtended) => {
   const bucket = ctx.env.R2_BUCKET;
 
   try {
@@ -19,18 +13,18 @@ filesWorkers.get("/list", async (ctx) => {
     const keys = objects.objects.map((object) => object.key);
     return ctx.json({ success: true, keys });
   } catch (error) {
+    console.error("Error listing objects:", error);
     return ctx.json({
       success: false,
       message: "Error listing objects",
-      error: error.message,
     });
   }
 });
 
 // Route to upload a file
-filesWorkers.post("/upload", async (ctx) => {
+filesWorkers.post("/upload", async (ctx: ContextExtended) => {
   const formData = await ctx.req.formData();
-  const file = formData.get("file"); // Assuming 'file' is the key in the form
+  const file = formData.get("file") as File;
 
   if (!file) {
     return ctx.json({ success: false, message: "No file uploaded" });
@@ -52,16 +46,16 @@ filesWorkers.post("/upload", async (ctx) => {
       filename: key,
     });
   } catch (error) {
+    console.error("Error uploading file:", error);
     return ctx.json({
       success: false,
       message: "Error uploading file",
-      error: error.message,
     });
   }
 });
 
 // Route to delete a specific file by ID
-filesWorkers.delete("/:key", async (ctx) => {
+filesWorkers.delete("/:key", async (ctx: ContextExtended) => {
   const filename = ctx.req.param("key");
 
   if (!filename) {
@@ -80,16 +74,16 @@ filesWorkers.delete("/:key", async (ctx) => {
       message: `File ${filename} deleted successfully`,
     });
   } catch (error) {
+    console.error("Error deleting file:", error);
     return ctx.json({
       success: false,
       message: `Error deleting file ${filename}`,
-      error: error.message,
     });
   }
 });
 
 // Route to get a specific file by ID
-filesWorkers.get("/:key", async (ctx) => {
+filesWorkers.get("/:key", async (ctx: ContextExtended) => {
   const filename = ctx.req.param("key");
 
   if (!filename) {
@@ -106,7 +100,7 @@ filesWorkers.get("/:key", async (ctx) => {
     if (file) {
       // File exists, return the file content with the appropriate content type
       return ctx.body(file.body, {
-        headers: { "Content-Type": file.httpMetadata.contentType },
+        headers: { "Content-Type": file.httpMetadata?.contentType || "" },
       });
     } else {
       return ctx.json({
@@ -115,10 +109,10 @@ filesWorkers.get("/:key", async (ctx) => {
       });
     }
   } catch (error) {
+    console.error("Error retrieving file:", error);
     return ctx.json({
       success: false,
       message: `Error retrieving file ${filename}`,
-      error: error.message,
     });
   }
 });
