@@ -6,10 +6,11 @@ import filesWorkers from "./routes/files-workers.route";
 
 const app = new Hono();
 
+// TODO: In-Workshop Activities.
 // Define allowed origins
 const allowedOrigins = new Set([
   "http://localhost:5173",
-  "https://blazenote.suppadev.com",
+  "https://<your-domain>.<tld>",
 ]);
 
 // https://hono.dev/docs/middleware/builtin/cors
