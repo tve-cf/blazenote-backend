@@ -1,17 +1,14 @@
 import { Hono } from "hono";
 import { ContextExtended } from "../types";
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const images = new Hono();
 
 // Cloudflare API details
 const API_URL = "https://api.cloudflare.com/client/v4/accounts/e206e81b43614ccd76aed224ad5e1cbc/images/v1";
-const TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 
-images.post('/upload', async (c) => {
+images.post('/upload', async (c: ContextExtended) => {
   try {
+    const TOKEN = c.env.CLOUDFLARE_API_TOKEN;
     const body = await c.req.parseBody();
     console.log(body['file']);
     // Validate input
