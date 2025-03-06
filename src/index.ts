@@ -4,7 +4,6 @@ import notes from "./routes/notes.route";
 import files from "./routes/files.route";
 import filesWorkers from "./routes/files-workers.route";
 import images from "./routes/images.route";
-// import imagesWorker from "./routes/images-workers.route";
 
 const app = new Hono();
 
