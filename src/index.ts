@@ -4,6 +4,7 @@ import notes from "./routes/notes.route";
 import files from "./routes/files.route";
 import filesWorkers from "./routes/files-workers.route";
 import images from "./routes/images.route";
+import { ContextExtended } from "./types";
 
 const app = new Hono();
 
@@ -18,7 +19,7 @@ const allowedOrigins = new Set([
 app.use(
   "*",
   cors({
-    origin: (origin) => {
+    origin: (origin: string) => {
       if (allowedOrigins.has(origin)) {
         return origin; // Allow this origin
       }
@@ -33,8 +34,8 @@ app.use(
   })
 );
 
-app.get("/", (c) => {
-  return c.text("Hello Hono!");
+app.get("/", (c: ContextExtended) => {
+  return c.text("Hello BlazeHack!");
 });
 
 app.route("/notes", notes);
