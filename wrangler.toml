@@ -2,14 +2,14 @@ name = "blazenote-api"
 main = "src/index.ts"
 compatibility_date = "2024-12-30"
 compatibility_flags = [ "nodejs_compat" ]
+ 
+[[d1_databases]]
+binding = "DB"
+database_name = "blazenote"
+database_id = "<your-database-id>"
+migrations_dir = "./migrations"
 
 # TODO: In-Workshop Activities. Uncomment the code below:
- 
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "blazenote"
-# database_id = "<your-database-id>"
-# migrations_dir = "./migrations"
 
 # [[r2_buckets]]
 # binding = "R2_BUCKET"
