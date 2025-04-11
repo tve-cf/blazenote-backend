@@ -39,6 +39,28 @@ notes.post("/", async (ctx: ContextExtended) => {
   }
 });
 
+notes.put("/:id", async (ctx: ContextExtended) => {
+  try {
+    const id = ctx.req.path.split("/").slice(-1).join();
+    const { title, description } = await ctx.req.json();
+    const db = ctx.env.DB;
+    const response = await db
+      .prepare(
+        `UPDATE note
+          SET (title, description) = ('${title}', '${description}')
+          WHERE id = '${id}'`
+      )
+      .run();
+
+    return response.success
+      ? Response.json({ message: "note updated" })
+      : Response.json({ message: "failed to update note" });
+  } catch (e) {
+    console.error(`failed to update note. reason: ${e}`);
+    return Response.json({ message: `failed to update note. reason: ${e}` });
+  }
+});
+
 notes.delete("/:id", async (ctx: ContextExtended) => {
   try {
     const id = ctx.req.path.split("/").slice(-1).join();
