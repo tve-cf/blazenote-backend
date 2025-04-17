@@ -4,9 +4,10 @@ import { ContextExtended } from "../types";
 const notes = new Hono();
 
 notes.get('/', async (ctx: ContextExtended) => {
-    const db = ctx.env.DB;
-    const notes = await db.prepare("SELECT * FROM note LIMIT 50")
-        .run();
+  const db = ctx.env.DB;
+  const notes = await db
+    .prepare("SELECT * FROM note ORDER BY updated_at DESC LIMIT 50")
+    .run();
 
     return Response.json(notes.results)
 });
@@ -43,9 +44,10 @@ notes.put('/:id', async (ctx: ContextExtended) => {
         const db = ctx.env.DB;
         const response  = await db.prepare(
             `UPDATE note
-            SET (title, description) = ('${title}', '${description}')
-            WHERE id = '${id}'`
+            SET title = ?1, description = ?2
+            WHERE id = ?3`
         )
+        .bind(title, description, id)
         .run();
         
         return response.success ? Response.json({ message: "note updated" }) : Response.json({ message: "failed to update note" })
