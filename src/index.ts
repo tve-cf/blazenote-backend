@@ -4,6 +4,7 @@ import notes from "./routes/notes.route";
 import files from "./routes/files.route";
 import filesWorkers from "./routes/files-workers.route";
 import images from "./routes/images.route";
+import ai from "./routes/ai.route";
 
 const app = new Hono();
 
@@ -40,5 +41,6 @@ app.route("/notes", notes);
 app.route("/files", files);
 app.route("/files-workers", filesWorkers);
 app.route("/images", images);
+app.route("/ai", ai);
 
 export default app;

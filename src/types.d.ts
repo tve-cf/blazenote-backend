@@ -8,6 +8,7 @@ type Bindings = {
   R2_SECRET_KEY: string;
   R2_ENDPOINT: string;
   R2_BUCKET_NAME: string;
+  AI: Ai;
 };
 
 export type ContextExtended = Context<{ Bindings: Bindings }>;
