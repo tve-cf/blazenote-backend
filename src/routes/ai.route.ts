@@ -8,8 +8,8 @@ ai.post("/summarize", async (ctx: ContextExtended) => {
   const body = await ctx.req.json();
 
   const response = await ai.run("@cf/meta/llama-4-scout-17b-16e-instruct", {
-    prompt: `Summarize the following text. Limit to 1000 words and 3 paragraphs. Format it in html.: ${body.text}`,
-    temperature: 0.5,
+    prompt: `Summarize the following text. Limit to 1000 words and 3 paragraphs. Only return the summary without other text. Format it in html.: ${body.text}`,
+    temperature: 0.2,
     max_tokens: 1000,
   });
 
