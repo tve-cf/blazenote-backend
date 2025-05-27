@@ -15,13 +15,16 @@ images.post('/upload', async (c: ContextExtended) => {
       return c.json({ error: 'Image file is required' }, 400);
     }
 
+    const formData = new FormData();
+    formData.append('file', body.file as File);
+
     // Make the API request to Cloudflare
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${TOKEN}`,
       },
-      body: body,
+      body: formData,
     });
 
     const result = await response.json();
