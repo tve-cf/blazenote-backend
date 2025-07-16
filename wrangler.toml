@@ -1,4 +1,4 @@
-name = "blazenote-api"
+name = "blazenote-backend"
 main = "src/index.ts"
 compatibility_date = "2024-12-30"
 compatibility_flags = [ "nodejs_compat" ]
@@ -6,9 +6,7 @@ compatibility_flags = [ "nodejs_compat" ]
 [[d1_databases]]
 binding = "DB"
 database_name = "blazenote"
-database_id = "03f478d7-587c-4261-a287-1b677a35cfb0"
-# database_name = "blazenote-test"
-# database_id = "c97dddcb-c0af-4274-8dd6-8f2fa3a6fcb2"
+database_id = "<DATABASE ID>"
 migrations_dir = "./migrations"
 
 [ai]
