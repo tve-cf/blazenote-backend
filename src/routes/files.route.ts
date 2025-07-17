@@ -3,6 +3,9 @@ import { ContextExtended } from "../types";
 
 const files = new Hono();
 
+// Helper to init the s3 client
+function createR2Client(ctx: ContextExtended) {}
+
 // Route to generate pre-signed url for upload
 files.post("/pre-signed-url", async (ctx: ContextExtended) => {});
 
@@ -73,6 +76,47 @@ files.post("/save", async (ctx: ContextExtended) => {
     return ctx.json({
       success: false,
       message: `Failed to save file metadata`,
+    });
+  }
+});
+
+// Delete attachment based on noteId
+files.delete("/:noteId", async (ctx: ContextExtended) => {
+  const db = ctx.env.DB;
+  const noteId = ctx.req.param("noteId");
+
+  try {
+    // Fetch files associated with the noteId
+    const query = "SELECT id, name FROM file WHERE note_id = ?";
+    const results = await db.prepare(query).bind(noteId).all();
+
+    if (!results.success || results.results.length === 0) {
+      return ctx.json({
+        success: false,
+        message: `No files found for: ${noteId}`,
+      });
+    }
+
+    const names = results.results.map((row) => row.name as string);
+
+    // Parallel deletion of files
+    const deletePromises = names.map((name) =>
+      ctx.env.R2_BUCKET.delete(name).catch((error) => {
+        console.error(`Error deleting file ${name}:`, error.message);
+      })
+    );
+    await Promise.all(deletePromises);
+
+    // Return success response
+    return ctx.json({
+      success: true,
+      message: "All files deleted.",
+    });
+  } catch (error) {
+    console.error(`Failed to process files for ${noteId}: ${error}`);
+    return ctx.json({
+      success: false,
+      message: `Failed to process files for deletion`,
     });
   }
 });
