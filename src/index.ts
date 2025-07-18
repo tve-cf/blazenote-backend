@@ -11,7 +11,7 @@ const app = new Hono();
 // Define allowed origins
 const allowedOrigins = new Set([
   "http://localhost:5173",
-  "https://blazenote-backend.<YOUR-DOMAIN>.<TLD>",
+  "https://<your-frontend-domain>.<tld>",
 ]);
 
 // https://hono.dev/docs/middleware/builtin/cors
