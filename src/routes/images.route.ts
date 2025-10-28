@@ -12,5 +12,6 @@ const API_URL = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ima
 images.post('/upload', async (c: ContextExtended) => { 
   return c.json({});
 });
+images.post("/upload", async (c: ContextExtended) => {});
 
 export default images;
