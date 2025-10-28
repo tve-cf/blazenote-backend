@@ -10,11 +10,13 @@ compatibility_flags = [ "nodejs_compat" ]
 # database_name = "blazenote"
 # database_id = "<your-database-id>"
 # migrations_dir = "./migrations"
+# remote = true
 
 # [[r2_buckets]]
 # binding = "R2_BUCKET"
 # bucket_name = "blazenote"
 # preview_bucket_name = "dev-blazenote"
+# remote = true
 
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]
