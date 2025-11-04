@@ -18,5 +18,6 @@ compatibility_flags = [ "nodejs_compat" ]
 # preview_bucket_name = "dev-blazenote"
 # remote = true
 
+# Enable observability logging
 [observability.logs]
 enabled = true
