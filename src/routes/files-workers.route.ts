@@ -19,3 +19,5 @@ filesWorkers.delete("/:key", async (ctx: ContextExtended) => {
 filesWorkers.get("/list", async (ctx: ContextExtended) => {
   return ctx.json({});
 });
+
+export default filesWorkers;
