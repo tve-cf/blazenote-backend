@@ -13,11 +13,6 @@ files.post("/pre-signed-url", async (ctx: ContextExtended) => {});
 // Route to generate pre-signed url for download
 files.get("/pre-signed-url/:fileName", async (ctx: ContextExtended) => {});
 
-// TODO: In-Workshop Activities.
-// Route to generate pre-signed url for upload
-files.post("/pre-signed-url", async (ctx: ContextExtended) => {
-});
-
 // Route to get a list of files attached to a note from db
 files.get("/list/:noteId", async (ctx: ContextExtended) => {
   const db = ctx.env.DB;
