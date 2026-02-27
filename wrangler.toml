@@ -5,18 +5,23 @@ compatibility_flags = [ "nodejs_compat" ]
 
 # TODO: In-Workshop Activities. Uncomment the code below:
  
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "blazenote"
-# database_id = "<your-database-id>"
-# migrations_dir = "./migrations"
-# remote = true
+# Custom domain configuration
+[[routes]]
+pattern = "blazenote-api.leejunhao0928.org"
+custom_domain = true
 
-# [[r2_buckets]]
-# binding = "R2_BUCKET"
-# bucket_name = "blazenote"
-# preview_bucket_name = "dev-blazenote"
-# remote = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blazenote-db"
+database_id = "7635bf74-e1bd-4536-b65a-a5e56c42df6c"
+remote = true
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "blazenote-r2"
+preview_bucket_name = "dev-blazenote"
+remote = true
 
 # Enable observability logging
 [observability.logs]
